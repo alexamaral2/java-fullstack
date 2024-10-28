@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8080:8080"    
+      - "5005:5005"    
+    networks:
+      - app-network
+    depends_on:
+      - db
+    environment:
+      SPRING_PROFILES_ACTIVE: "${SPRING_PROFILES_ACTIVE:-prod}"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/${POSTGRES_DB}"
+      SPRING_DATASOURCE_USERNAME: "${SPRING_DATASOURCE_USERNAME}"
+      SPRING_DATASOURCE_PASSWORD: "${SPRING_DATASOURCE_PASSWORD}"
+      JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+    volumes:
+      - ./backend/logs:/app/logs 
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "4200:4200" 
+    networks:
+      - app-network
+    depends_on:
+      - backend
+    environment:
+      NODE_ENV: "${NODE_ENV:-development}"
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB}"
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+    ports:
+      - "5432:5432" 
+    networks:
+      - app-network
+    volumes:
+      - db_data:/var/lib/postgresql/data 
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  db_data:

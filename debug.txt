@@ -1,0 +1,1 @@
+SPRING_PROFILES_ACTIVE=dev NODE_ENV=development docker-compose -f docker-compose-debug.yml up --build
